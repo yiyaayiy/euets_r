@@ -16,3 +16,4 @@ The current content includes:
   - **master_script.R** - Master script for project execution.
   - **clean_data.R** - Data cleaning and pre-processing workflows.
   - **functions.R** - Modular reusable functions for analysis.
+  - **EDA.Rmd** - Exploratory data analysis in R notebook.
