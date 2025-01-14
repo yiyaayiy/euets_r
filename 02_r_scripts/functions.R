@@ -4,9 +4,9 @@
 ###################################################
 
 
-########################
-#### Pre-Processing ####
-########################
+###########################
+#### 1. Pre-Processing ####
+###########################
 
 # Function to install and load libraries
 load_libraries <- function(packages) {
@@ -47,5 +47,41 @@ load_csv_files <- function(file_path) {
   
   # Return the list of data frames
   return(data_list)
+}
+
+
+##########################
+#### 2. Visualization ####
+##########################
+
+
+eda_bar <- function(data, x_col, y_col, title, 
+                    x_label = NULL, y_label = NULL, 
+                    use_fill = TRUE, fill_col = NULL, bar_color = "black", bar_fill = "gray") {
+  # Base ggplot object
+  p <- ggplot(data, aes(x = !!sym(x_col), y = !!sym(y_col)))
+  
+  # Add fill aesthetics if specified
+  if (use_fill && !is.null(fill_col)) {
+    p <- p + aes(fill = !!sym(fill_col)) +
+      scale_fill_viridis_d(option = "plasma")  # Use a color palette for fill
+  }
+  
+  # Add bar geometry with custom fill
+  p <- p +
+    geom_bar(stat = "identity", color = bar_color, fill = if (!use_fill) bar_fill else NA) +
+    labs(
+      title = title,
+      x = x_label %||% x_col,  # Use x_label if provided, otherwise default to x_col
+      y = y_label %||% y_col,  # Use y_label if provided, otherwise default to y_col
+      fill = if (use_fill && !is.null(fill_col)) fill_col else NULL
+    ) +
+    theme_minimal() +
+    theme(
+      plot.title = element_text(hjust = 0.5, face = "bold"),
+      legend.position = if (use_fill && !is.null(fill_col)) "bottom" else "none"
+    )
+  
+  return(p)
 }
 

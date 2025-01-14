@@ -6,6 +6,8 @@ output: html_notebook
 ```{r include = FALSE}
 knitr::opts_chunk$set(
   echo = FALSE,
+  arning = FALSE, 
+  message = FALSE,
   fig.width=12, 
   fig.height=8)
 ```
@@ -14,7 +16,7 @@ This is an R notebook that documents the EDA for the EU ETS.
 
 # Data Overview
 
-There are 17,281 \* 17 = 302,957 unique installation-year.
+The table below summarises the number of unique observations for different variables. There are 17,281 \* 17 = 302,957 unique installation-year.
 
 ```{r}
 results %>%
@@ -31,8 +33,12 @@ results %>%
   kable_styling(bootstrap_options = c("striped", "hover", "condensed"))
 ```
 
+
+The EU ETS covers both the installations and aircraft operators, with the latter being regulated starting from 2012. The two figures below show the number of regulated entities in each year for installations and aircraft operators, respectively.
+
+
 ```{r}
-bar_plot(
+eda_bar(
   data = results %>%
     filter(!ins_isAircraftOperator & regulated) %>%
     group_by(com_year) %>%
@@ -49,7 +55,7 @@ bar_plot(
 
 
 ```{r}
-bar_plot(
+eda_bar(
   data = results %>%
     filter(ins_isAircraftOperator & regulated) %>%
     group_by(com_year) %>%
