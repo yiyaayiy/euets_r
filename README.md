@@ -17,3 +17,4 @@ The current content includes:
   - **clean_data.R** - Data cleaning and pre-processing workflows.
   - **functions.R** - Modular reusable functions for analysis.
   - **EDA.Rmd** - Exploratory data analysis in R notebook.
+  - **EDA.nb.html** - The HTML file generated from an R markdown notebook.
