@@ -15,13 +15,16 @@ source("02_r_scripts/functions.R")
 # Load libraries
 load_libraries(
   c(
-    "stringdist", 
+    "stringdist",  # Data cleaning and manipulation 
     "tidyverse",
-    "usethis",
-    "rmarkdown",
-    "paletteer",
-    "patchwork",
-    "kableExtra"
+    "usethis",     # Git flow
+    "rmarkdown",   # R markdown notebook
+    "kableExtra",  # R markdown tables
+    "paletteer",   # Nice figure color
+    "patchwork",   # Combine plots
+    "eurostat",    # EU maps
+    "sf",
+    "giscoR"
     )
 )
 

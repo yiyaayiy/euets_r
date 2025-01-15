@@ -70,6 +70,29 @@ eda_bar(
 )
 ```
 
+The plot below shows the number of ever regulated installations in by each countries.
+
+```{r}
+eu28_shp <- get_eurostat_geospatial(
+  resolution = 10, 
+  nuts_level = 0, 
+  year = 2016) %>%
+  left_join(
+    eu_countries %>% select(geo = code, name), 
+    by = "geo") %>% 
+  filter(id == "UK" | !is.na(name)) %>%
+  arrange(geo) %>% 
+  st_as_sf()
+
+eu28_shp %>% 
+  ggplot() +
+  geom_sf() +
+  scale_x_continuous(limits = c(-10, 35)) +
+  scale_y_continuous(limits = c(35, 65)) +
+  theme_void()
+```
+
+
 ```{r}
 # Data preparation
 t <- results %>%
