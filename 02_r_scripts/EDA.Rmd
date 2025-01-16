@@ -73,6 +73,7 @@ eda_bar(
 The plot below shows the number of ever regulated installations in by each countries.
 
 ```{r}
+# Obtain EU map data
 eu_shp <- get_eurostat_geospatial(
   resolution = 10, 
   nuts_level = 0, 
@@ -81,24 +82,27 @@ eu_shp <- get_eurostat_geospatial(
   mutate(id = case_when(
     id == "EL" ~ "GR",
     id == "UK" ~"GB",
-    TRUE ~ id
-  )) %>%
-  inner_join(results %>%
+    TRUE ~ id))
+```
+
+
+```{r}
+eda_EUmap(
+  data = eu_shp %>%
+    inner_join(results %>%
                distinct(installation_id, ins_country_id) %>%
                group_by(ins_country_id) %>%
                summarise(Count = n()),
-             by = join_by(id == ins_country_id)) %>%
-  arrange(geo) %>% 
-  st_as_sf()
-  
-
-eu_shp %>% 
-  ggplot(aes(fill = Count)) +
-  geom_sf() +
-  scale_fill_continuous(type = "viridis") +
-  scale_x_continuous(limits = c(-25, 45)) +
-  scale_y_continuous(limits = c(35, 70)) +
-  theme_void()
+               by = join_by(id == ins_country_id)) %>%
+    arrange(geo) %>% 
+    st_as_sf(),
+  fill_var = "Count",
+  breaks = seq(0, 3000, by = 500),
+  name = "No. of Installations",
+  title = "Number of Ever Regulated Installations by Country",
+  subtitle = "From 2005 to 2021",
+  caption = "Data: EUTL"
+)
 ```
 
 

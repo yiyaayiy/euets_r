@@ -55,9 +55,17 @@ load_csv_files <- function(file_path) {
 ##########################
 
 
-eda_bar <- function(data, x_col, y_col, title, 
-                    x_label = NULL, y_label = NULL, 
-                    use_fill = TRUE, fill_col = NULL, bar_color = "black", bar_fill = "gray") {
+# Function to draw bar plot
+eda_bar <- function(data, 
+                    x_col, 
+                    y_col, 
+                    title, 
+                    x_label = NULL, 
+                    y_label = NULL, 
+                    use_fill = TRUE, 
+                    fill_col = NULL, 
+                    bar_color = "black", 
+                    bar_fill = "gray") {
   # Base ggplot object
   p <- ggplot(data, aes(x = !!sym(x_col), y = !!sym(y_col)))
   
@@ -85,3 +93,46 @@ eda_bar <- function(data, x_col, y_col, title,
   return(p)
 }
 
+
+
+# Function to draw EU maps
+eda_EUmap <- function(data, 
+                      fill_var, 
+                      type = "viridis", 
+                      trans = "reverse", 
+                      guide = guide_colorbar(
+                        barwidth = unit(0.4, "cm"), 
+                        barheight = unit(7, "cm"), 
+                        ticks = TRUE, 
+                        reverse = TRUE
+                      ), 
+                      x_limits = c(-25, 45), 
+                      y_limits = c(35, 70), 
+                      ...) {
+  # Capture additional arguments for both labs() and scale_fill_continuous()
+  dots <- list(...)
+  
+  # Separate labs() arguments from scale_fill_continuous() arguments
+  labs_args <- dots[names(dots) %in% c("title", "subtitle", "caption")]
+  scale_fill_args <- dots[!(names(dots) %in% c("title", "subtitle", "caption"))]
+  
+  # Base plot
+  p <- ggplot(data, aes(fill = !!sym(fill_var))) +
+    geom_sf() +
+    scale_fill_continuous(
+      type = type,
+      trans = trans,
+      guide = guide,
+      !!!scale_fill_args  # Pass additional scale_fill_continuous arguments
+    ) +
+    scale_x_continuous(limits = x_limits) +
+    scale_y_continuous(limits = y_limits) +
+    theme_void()
+  
+  # Add labs() arguments if provided
+  if (length(labs_args) > 0) {
+    p <- p + do.call(labs, labs_args)
+  }
+  
+  return(p)
+}
