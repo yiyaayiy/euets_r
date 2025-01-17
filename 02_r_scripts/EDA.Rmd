@@ -33,6 +33,8 @@ results %>%
   kable_styling(bootstrap_options = c("striped", "hover", "condensed"))
 ```
 
+# Regulated Entities
+
 
 The EU ETS covers both the installations and aircraft operators, with the latter being regulated starting from 2012. The two figures below show the number of regulated entities in each year for installations and aircraft operators, respectively.
 
@@ -85,7 +87,6 @@ eu_shp <- get_eurostat_geospatial(
     TRUE ~ id))
 ```
 
-
 ```{r}
 eda_EUmap(
   data = eu_shp %>%
@@ -104,6 +105,40 @@ eda_EUmap(
   caption = "Data: EUTL"
 )
 ```
+
+Regulated entities by EU ETS regulated activities, regrouped by acivitiy category.
+
+```{r}
+eda_bar(
+  data = results %>% 
+    distinct(installation_id, ins_activity_id) %>% 
+    mutate(category = case_when(
+      ins_activity_id %in% c(1, 20) ~ "Combustion", 
+      ins_activity_id %in% c(2, 21) ~ "Refineries", 
+      ins_activity_id %in% c(3, 22) ~ "Coke ovens",
+      ins_activity_id %in% c(4, 5, 23:28) ~ "Metal",
+      ins_activity_id %in% c(6, 29, 30) ~ "Cement and Lime",
+      ins_activity_id %in% c(7, 8, 31:34) ~ "Glass and Ceramics",
+      ins_activity_id %in% c(9, 35, 36) ~ "Pulp and Paper",
+      ins_activity_id == 10 ~ "Aircrafts",
+      ins_activity_id %in% c(37:42, 44) ~ "Chemicals",
+      ins_activity_id == 43 ~ "Hydrogen Production",
+      ins_activity_id %in% c(45:47) ~ "Carbon Capture and Storage",
+      ins_activity_id == 99 ~ "Other")) %>% 
+    group_by(category) %>% 
+    summarise(Count = n()),
+  x_col = "category",
+  y_col = "Count",
+  title = "Number of Ever-Regulated Entities by Activity Category",
+  x_label = "Activity Category",
+  y_label = "Count",
+  use_fill = FALSE, 
+  bar_fill = "deepskyblue4",
+  orientation = "horizontal",
+  arrange_bars = "ascending"
+)
+```
+
 
 
 ```{r}

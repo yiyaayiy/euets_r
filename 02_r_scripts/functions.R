@@ -65,7 +65,16 @@ eda_bar <- function(data,
                     use_fill = TRUE, 
                     fill_col = NULL, 
                     bar_color = "black", 
-                    bar_fill = "gray") {
+                    bar_fill = "gray",
+                    orientation = "vertical",
+                    arrange_bars = NULL) {
+  # Optionally reorder the x-axis variable by y-axis values
+  if (!is.null(arrange_bars)) {
+    data <- data %>%
+      mutate(!!sym(x_col) := reorder(!!sym(x_col), !!sym(y_col), 
+                                     FUN = if (arrange_bars == "ascending") identity else function(x) -x))
+  }
+  
   # Base ggplot object
   p <- ggplot(data, aes(x = !!sym(x_col), y = !!sym(y_col)))
   
@@ -89,6 +98,11 @@ eda_bar <- function(data,
       plot.title = element_text(hjust = 0.5, face = "bold"),
       legend.position = if (use_fill && !is.null(fill_col)) "bottom" else "none"
     )
+  
+  # Apply coord_flip() for horizontal bars if specified
+  if (orientation == "horizontal") {
+    p <- p + coord_flip()
+  }
   
   return(p)
 }
