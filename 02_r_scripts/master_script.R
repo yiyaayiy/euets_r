@@ -18,6 +18,7 @@ load_libraries(
     "stringdist",  # Data cleaning and manipulation 
     "tidyverse",
     "usethis",     # Git flow
+    "gitcreds",
     "rmarkdown",   # R markdown notebook
     "kableExtra",  # R markdown tables
     "paletteer",   # Nice figure color
