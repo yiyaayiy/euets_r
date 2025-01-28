@@ -1,6 +1,9 @@
 ---
 title: "Exploratory Data Analysis for EU ETS"
-output: html_notebook
+output:
+  pdf_document: default
+  html_document:
+    df_print: paged
 ---
 
 ```{r include = FALSE}
@@ -8,9 +11,26 @@ knitr::opts_chunk$set(
   echo = FALSE,
   arning = FALSE, 
   message = FALSE,
+  warning = FALSE,
   fig.width=12, 
   fig.height=8)
+source('function_vs.R')
 ```
+
+```{r}
+# Load library
+library("tidyverse")
+library("kableExtra")   # R markdown tables
+library("paletteer")  # Nice figure color 
+library("eurostat")  # EU maps
+library("sf")
+library("giscoR")
+```
+
+```{r}
+results <- read_csv('../01_tidy_data/ets_merged.csv')
+```
+
 
 This is an R notebook that documents the EDA for the EU ETS.
 
@@ -141,101 +161,4 @@ eda_bar(
 
 
 
-```{r}
-# Data preparation
-t <- results %>%
-  group_by(com_year, ins_isAircraftOperator) %>%
-  summarise(
-    across(
-      c(com_allocatedTotal_sum, com_allocatedFree_sum, com_verified_sum), 
-      ~ sum(., na.rm = TRUE)), .groups = "drop"
-  ) %>%
-  mutate(
-    purchased = com_allocatedTotal_sum - com_allocatedFree_sum
-  ) %>%
-  pivot_longer(
-    cols = c(com_allocatedFree_sum, purchased),
-    names_to = "allocation_type",
-    values_to = "amount"
-  )
 
-# Function to generate the plot for a given operator type
-plot_compliance <- function(data, is_aircraft_operator) {
-  operator_label <- ifelse(is_aircraft_operator, "Aircraft Operators", "Non-Aircraft Operators")
-  
-  # Filter data for the specified operator type
-  operator_data <- data %>% filter(ins_isAircraftOperator == is_aircraft_operator)
-  verified_data <- operator_data %>% distinct(com_year, com_verified_sum)
-  
-  # Create the plot
-  ggplot(data = operator_data, aes(x = com_year)) +
-    # Stacked bar chart for freely allocated and purchased allowances
-    geom_bar(
-      aes(y = amount, fill = allocation_type), 
-      stat = "identity", position = "stack", color = "black"
-    ) +
-    # Line plot for total verified emissions
-    geom_line(
-      data = verified_data,
-      aes(y = com_verified_sum, color = "Total Verified Emissions", group = 1), 
-      size = 1
-    ) +
-    geom_point(
-      data = verified_data,
-      aes(y = com_verified_sum, color = "Total Verified Emissions"), 
-      size = 2.5
-    ) +
-    geom_vline(xintercept = c("2007", "2012", "2020"), color = "darkgray", linewidth=1.5) +
-    # Custom scales
-    scale_fill_manual(values = c("steelblue", "darkgreen"), labels = c("Freely Allocated", "Purchased")) +
-    scale_color_manual(values = c("red")) +
-    labs(
-      title = paste("Total Allocations and Verified Emissions (", operator_label, ")", sep = ""),
-      x = "Year",
-      y = "Total Amount (Tonnes)",
-      fill = "Allocation Type",
-      color = "Metric"
-    ) +
-    theme_bw() +
-    theme(
-      legend.position = "bottom",
-      legend.title = element_blank(),
-      plot.title = element_text(hjust = 0.5, face = "bold")
-    )
-}
-
-
-print(plot_compliance(t, is_aircraft_operator = FALSE))
-print(plot_compliance(t, is_aircraft_operator = TRUE))
-```
-
-```{r}
-# Calculate average emission compliance by year
-t <- results %>%
-  select(installation_id,
-         com_year, 
-         com_allocatedTotal_sum, 
-         com_allocatedFree_sum, 
-         com_verified_sum) %>%
-  rename(
-    "Year" = com_year,
-    "Average Allocated Allowances" = com_allocatedTotal_sum,
-    "Average Freely Allocated Allowances" = com_allocatedFree_sum,
-    "Average Verified Emissions" = com_verified_sum
-  ) %>%
-  group_by(Year) %>%
-  summarise(across(everything(), ~ mean(., na.rm = TRUE))) %>%
-  gather(key = "variable", value = "value", -Year)
-
-
-  
-### Plot the reshaped data.frame
-ggplot(t, aes(x = Year, y = value, group = variable, color = variable, linetype = variable)) +
-  geom_vline(xintercept = c("2007", "2012", "2020"), color = "darkgray", linewidth=1.5) +
-  geom_line(lwd = 1) +
-  geom_point(aes(shape = variable), size = 2.5) +
-  scale_color_manual(values = c("darkred", "steelblue", "darkgreen")) +
-  labs(x ="Year", y = "Tonne") +
-  theme_bw() +
-  theme(legend.position="bottom", legend.title = element_blank())
-```

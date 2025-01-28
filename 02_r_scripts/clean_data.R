@@ -183,7 +183,7 @@ merge_and_clean <- function(acc_acch, ins_com) {
 
 results <- main()
 
-rm(list = setdiff(ls(), c("results", ls(pattern="eda_"))))
+rm(list = ls())
 
 
 

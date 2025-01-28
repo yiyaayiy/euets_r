@@ -9,7 +9,7 @@
 ##########################################
 
 # Load functions
-source("02_r_scripts/functions.R")
+source("02_r_scripts/function_pre.R")
 
 
 # Load libraries
@@ -20,12 +20,7 @@ load_libraries(
     "usethis",     # Git flow
     "gitcreds",
     "rmarkdown",   # R markdown notebook
-    "kableExtra",  # R markdown tables
-    "paletteer",   # Nice figure color
-    "patchwork",   # Combine plots
-    "eurostat",    # EU maps
-    "sf",
-    "giscoR"
+    "tinytex"      # R markdown to PDF
     )
 )
 
