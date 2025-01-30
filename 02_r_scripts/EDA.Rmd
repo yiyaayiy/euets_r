@@ -11,9 +11,7 @@ knitr::opts_chunk$set(
   echo = FALSE,
   arning = FALSE, 
   message = FALSE,
-  warning = FALSE,
-  fig.width=12, 
-  fig.height=8)
+  warning = FALSE)
 source('function_vs.R')
 ```
 
@@ -22,6 +20,7 @@ source('function_vs.R')
 library("tidyverse")
 library("kableExtra")   # R markdown tables
 library("paletteer")  # Nice figure color 
+library("scales")
 library("eurostat")  # EU maps
 library("sf")
 library("giscoR")
@@ -58,41 +57,73 @@ results %>%
 
 The EU ETS covers both the installations and aircraft operators, with the latter being regulated starting from 2012. The two figures below show the number of regulated entities in each year for installations and aircraft operators, respectively.
 
+\vspace{15mm}
 
-```{r}
-eda_bar(
+```{r, fig.width=6,fig.height=2.75}
+ggplot(
   data = results %>%
     filter(!ins_isAircraftOperator & regulated) %>%
     group_by(com_year) %>%
-    summarise(count = n(), .groups = "drop"),
-  x_col = "com_year",
-  y_col = "count",
-  title = "Number of Regulated Installations",
-  x_label = "Year",
-  y_label = "Count",
-  use_fill = FALSE,
-  bar_fill = "darkslategrey"
-)
+    summarise(count = n(), .groups = "drop"), 
+  aes(x = com_year, y = count)
+) +
+  geom_bar(
+    stat = "identity", 
+    fill = "darkslategrey", 
+    color = "black"
+  ) +
+  labs(
+    title = "Number of Regulated Installations",
+    x = "Year",
+    y = "Count"
+  ) +
+  scale_x_continuous(
+    breaks = seq(2005, 2022, by = 2)
+  ) +  
+  scale_y_continuous(
+    breaks = pretty_breaks(n = 8)
+  ) +   
+  theme_minimal() +
+  theme(
+    plot.title = element_text(hjust = 0.5, size = 12)
+  )
 ```
 
 
-```{r}
-eda_bar(
+
+```{r, fig.width=6,fig.height=2.75}
+ggplot(
   data = results %>%
     filter(ins_isAircraftOperator & regulated) %>%
     group_by(com_year) %>%
     summarise(count = n(), .groups = "drop"),
-  x_col = "com_year",
-  y_col = "count",
-  title = "Number of Regulated Aircraft Operators",
-  x_label = "Year",
-  y_label = "Count",
-  use_fill = FALSE,
-  bar_fill = "lightblue"
-)
+  aes(x = com_year, y = count)
+) +
+  geom_bar(
+    stat = "identity", 
+    fill = "lightblue", 
+    color = "black"
+  ) +
+  labs(
+    title = "Number of Regulated Aircraft Operators",
+    x = "Year",
+    y = "Count"
+  ) +
+  scale_x_continuous(
+    breaks = seq(2012, 2021, by = 1)
+  ) +  
+  scale_y_continuous(
+    breaks = pretty_breaks(n = 8)
+  ) +   
+  theme_minimal() +
+  theme(
+    plot.title = element_text(hjust = 0.5, size = 12)
+  )
 ```
 
-The plot below shows the number of ever regulated installations in by each countries.
+\vspace{15mm}
+
+The plot below shows the number of ever regulated installations in each country.
 
 ```{r}
 # Obtain EU map data
@@ -126,10 +157,15 @@ eda_EUmap(
 )
 ```
 
-Regulated entities by EU ETS regulated activities, regrouped by acivitiy category.
 
-```{r}
-eda_bar(
+\newpage
+
+The figure below shows the regulated entities by EU ETS regulated activities, regrouped by activity category. The most common activity is the activity involving combustion of fuels.
+
+\vspace{10mm}
+
+```{r, fig.width=6,fig.height=3}
+ggplot(
   data = results %>% 
     distinct(installation_id, ins_activity_id) %>% 
     mutate(category = case_when(
@@ -146,19 +182,87 @@ eda_bar(
       ins_activity_id %in% c(45:47) ~ "Carbon Capture and Storage",
       ins_activity_id == 99 ~ "Other")) %>% 
     group_by(category) %>% 
-    summarise(Count = n()),
-  x_col = "category",
-  y_col = "Count",
-  title = "Number of Ever-Regulated Entities by Activity Category",
-  x_label = "Activity Category",
-  y_label = "Count",
-  use_fill = FALSE, 
-  bar_fill = "deepskyblue4",
-  orientation = "horizontal",
-  arrange_bars = "ascending"
-)
+    summarise(Count = n()) %>%
+    mutate(category = reorder(category, Count)),
+  aes(x = category, y = Count)
+) +
+  geom_bar(
+    stat = "identity", 
+    fill = "deepskyblue4", 
+    color = "black"
+  ) +
+  labs(
+    title = "Number of Ever-Regulated Entities by Activity Category",
+    x = "Activity Category",
+    y = "Count"
+  ) +
+  scale_y_continuous(
+    breaks = pretty_breaks(n = 9)
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(hjust = 0.5, size = 12)
+  ) +
+  coord_flip()
 ```
 
+# Emissions
+This section will explore the emission and compliance of the EU ETS. The figure below shows the aggregrated verified emissions and aggregated free allocated allowances across all entities by year.
 
+\vspace{10mm}
+
+```{r, fig.width=6,fig.height=3.5}
+bar_data <- results %>%
+  group_by(com_year) %>% 
+  summarise(total = sum(com_verified_sum, na.rm = TRUE)/1e6, .groups = "drop")
+
+line_data <- results %>%
+  group_by(com_year) %>% 
+  summarise(total = sum(com_allocatedTotal_sum, na.rm = TRUE)/1e6, .groups = "drop")
+
+ggplot() +
+  # Bar chart for verified emissions
+  geom_bar(
+    data = bar_data,
+    aes(x = com_year, y = total),
+    stat = "identity", 
+    fill = "coral4", 
+    color = NA,
+    alpha = 0.8
+  ) +
+  # Line chart for allocated allowances
+  geom_line(
+    data = line_data,
+    aes(x = com_year, y = total),
+    color = "darkolivegreen",
+    size = 1.2
+  ) +
+  # Points on the line
+  geom_point(
+    data = line_data,
+    aes(x = com_year, y = total),
+    color = "black",
+    size = 2.5
+  ) +
+  # Labels and theme
+  labs(
+    title = "Aggregated Verified Emissions and Free Allocated\nAllowances (MtCO2eq) by Year",
+    x = "Year",
+    y = "MtCO2eq",
+    caption = "Bar: Verified Emissions | Line: Free Allocated Allowances"
+  ) +
+  scale_x_continuous(
+    breaks = seq(2005, 2022, by = 2)
+  ) +  
+  scale_y_continuous(
+    breaks = pretty_breaks(n = 8)
+  ) +   
+  theme_minimal() +
+  theme(
+    plot.title = element_text(hjust = 0.5, size = 12)
+  )
+
+rm(bar_data, line_data)
+```
 
 
