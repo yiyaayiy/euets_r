@@ -165,10 +165,9 @@ The figure below shows the regulated entities by EU ETS regulated activities, re
 \vspace{10mm}
 
 ```{r, fig.width=6,fig.height=3}
-ggplot(
-  data = results %>% 
-    distinct(installation_id, ins_activity_id) %>% 
-    mutate(category = case_when(
+# Add activity category to results
+results <- results %>%
+  mutate(category = case_when(
       ins_activity_id %in% c(1, 20) ~ "Combustion", 
       ins_activity_id %in% c(2, 21) ~ "Refineries", 
       ins_activity_id %in% c(3, 22) ~ "Coke ovens",
@@ -180,7 +179,12 @@ ggplot(
       ins_activity_id %in% c(37:42, 44) ~ "Chemicals",
       ins_activity_id == 43 ~ "Hydrogen Production",
       ins_activity_id %in% c(45:47) ~ "Carbon Capture and Storage",
-      ins_activity_id == 99 ~ "Other")) %>% 
+      ins_activity_id == 99 ~ "Other"))
+
+
+ggplot(
+  data = results %>% 
+    distinct(installation_id, ins_activity_id, category) %>% 
     group_by(category) %>% 
     summarise(Count = n()) %>%
     mutate(category = reorder(category, Count)),
@@ -207,7 +211,7 @@ ggplot(
 ```
 
 # Emissions
-This section will explore the emission and compliance of the EU ETS. The figure below shows the aggregrated verified emissions and aggregated free allocated allowances across all entities by year.
+This section will explore the emission and compliance of the EU ETS. The figure below shows the aggregated verified emissions and aggregated free allocated allowances across all entities by year.
 
 \vspace{10mm}
 
@@ -264,5 +268,55 @@ ggplot() +
 
 rm(bar_data, line_data)
 ```
+
+\vspace{10mm}
+
+The figures below show the average verified emissions by different 
+
+```{r, fig.width=6,fig.height=3.5}
+eda_activity_emission(
+  data = results, 
+  selected_categories = c(
+    "Refineries", 
+    "Coke ovens",
+    "Metal", 
+    "Cement and Lime"
+  ),
+  palette_name = "beyonce::X124"
+)
+```
+
+\vspace{15mm}
+
+```{r, fig.width=6,fig.height=3.5}
+eda_activity_emission(
+  data = results, 
+  selected_categories = c(
+    "Combustion",
+    "Chemicals",
+    "Aircrafts",
+    "Hydrogen Production"
+  ),
+  palette_name = "lisa::OskarSchlemmer"
+)
+```
+```{r, fig.width=6,fig.height=3.5}
+eda_activity_emission(
+  data = results, 
+  selected_categories = c(
+    "Glass and Ceramics",
+    "Pulp and Paper",
+    "Carbon Capture and Storage",
+    "Other"),
+  palette_name = "lisa::FridaKahlo"
+)
+
+
+```
+
+
+
+
+
 
 
