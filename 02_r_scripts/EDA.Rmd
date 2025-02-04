@@ -271,7 +271,9 @@ rm(bar_data, line_data)
 
 \vspace{10mm}
 
-The figures below show the average verified emissions by different 
+The figures below display the annual verified emissions averaged across installations in the same activity category. For most activity categories, the average verified emissions do not seem to consistently trend downwards.
+
+\vspace{10mm}
 
 ```{r, fig.width=6,fig.height=3.5}
 eda_activity_emission(
@@ -310,9 +312,35 @@ eda_activity_emission(
     "Other"),
   palette_name = "lisa::FridaKahlo"
 )
-
-
 ```
+\vspace{7mm}
+
+The heat map shows the average verified emissions by country, averaging across installations and years in Phase 3 (2013-2020).
+
+\vspace{7mm}
+
+```{r, fig.width=6,fig.height=4}
+eda_EUmap(
+  data = eu_shp %>%
+    inner_join(results %>% 
+               group_by(com_euetsPhase, ins_country_id) %>%
+               summarise(
+                 avg = sum(com_verified_sum, na.rm = TRUE) / (1e3 * sum(com_verified_sum != 0)), 
+                 .groups = "drop"
+               ),
+               by = join_by(id == ins_country_id)) %>%
+    filter(com_euetsPhase == "2013-2020") %>%
+    arrange(geo) %>% 
+    st_as_sf(),
+  fill_var = "avg",
+  breaks = seq(0, 500, by = 50),
+  name = "1000 tCO2eq",
+  title = "Average Installation Verified Emissions by Country (Phase 3)",
+  subtitle = "From 2013 to 2020",
+  caption = "Data: EUTL"
+)
+```
+
 
 
 
